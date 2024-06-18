@@ -7,20 +7,22 @@ type Ema struct {
 }
 
 func NewEma(weight int32) *Ema {
-	return &Ema{Weight:float64(weight)}
+	return &Ema{Weight: float64(weight)}
 }
 
-func (this *Ema)Update(price float64) float64 {
+func (this *Ema) Update(price float64) float64 {
 	if this.age == 0 {
 		this.result = price
 	} else {
-		this.result = (2.0 * price + (this.Weight - 1.0) * this.result) / (this.Weight + 1.0)
+		alpha := 2.0 / (this.Weight + 1.0)
+		this.result = alpha*price + (1-alpha)*this.result
+		//this.result = (2.0 * price + (this.Weight - 1.0) * this.result) / (this.Weight + 1.0)
 	}
 	this.age += 1
 	return this.result
 }
 
-func (this *Ema)Clone() *Ema {
-	return &Ema{Weight:this.Weight, result:this.result, age:this.age}
+func (this *Ema) Clone() *Ema {
+	return &Ema{Weight: this.Weight, result: this.result, age: this.age}
 
 }
