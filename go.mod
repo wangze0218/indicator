@@ -1,3 +1,3 @@
 module github.com/wangze0218/indicator
 
-go 1.17
+go 1.19
