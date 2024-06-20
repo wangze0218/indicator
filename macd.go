@@ -23,8 +23,8 @@ func (this *Macd) Update(price float64) (float64, float64, float64) {
 	return this.diff, this.dea, this.macd
 }
 
-func (this *Macd) GetMacd() (diff float64, dea float64, macd float64) {
-	return diff, dea, macd
+func (this *Macd) GetMacd() (diff float64, dea float64, macd float64, short float64, long float64) {
+	return this.diff, this.dea, this.macd, this.short.result, this.long.result
 }
 
 func (this *Macd) Clone() *Macd {
