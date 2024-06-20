@@ -22,6 +22,10 @@ func (this *Ema) Update(price float64) float64 {
 	return this.result
 }
 
+func (this *Ema) GetPrice() float64 {
+	return this.result
+}
+
 func (this *Ema) Clone() *Ema {
 	return &Ema{Weight: this.Weight, result: this.result, age: this.age}
 

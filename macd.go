@@ -10,10 +10,10 @@ type Macd struct {
 }
 
 func NewMacd(short, long, signal int32) *Macd {
-	return &Macd{short:NewEma(short), long:NewEma(long), signal:NewEma(signal)}
+	return &Macd{short: NewEma(short), long: NewEma(long), signal: NewEma(signal)}
 }
 
-func (this *Macd)Update(price float64) (float64, float64, float64) {
+func (this *Macd) Update(price float64) (float64, float64, float64) {
 	s := this.short.Update(price)
 	l := this.long.Update(price)
 	this.diff = s - l
@@ -23,7 +23,11 @@ func (this *Macd)Update(price float64) (float64, float64, float64) {
 	return this.diff, this.dea, this.macd
 }
 
-func (this *Macd)Clone() *Macd {
-	return &Macd{short:this.short.Clone(), long:this.long.Clone(), signal:this.signal.Clone(), diff:this.diff, dea:this.dea, macd:this.macd}
+func (this *Macd) GetMacd() (diff float64, dea float64, macd float64) {
+	return diff, dea, macd
+}
+
+func (this *Macd) Clone() *Macd {
+	return &Macd{short: this.short.Clone(), long: this.long.Clone(), signal: this.signal.Clone(), diff: this.diff, dea: this.dea, macd: this.macd}
 
 }
