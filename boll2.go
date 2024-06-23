@@ -70,3 +70,20 @@ func (b *CurrBoll) GetBoll() (mid, up, low float64) {
 	}
 	return b.mid, b.up, b.low
 }
+
+// Clone 创建当前 CurrBoll 对象的深拷贝
+func (b *CurrBoll) Clone() *CurrBoll {
+	// 创建一个新的 CurrBoll 对象
+	clone := &CurrBoll{
+		n:      b.n,
+		k:      b.k,
+		prices: make([]float64, len(b.prices)),
+		smaSum: b.smaSum,
+		mid:    b.mid,
+		up:     b.up,
+		low:    b.low,
+	}
+	// 复制 prices 切片的数据
+	copy(clone.prices, b.prices)
+	return clone
+}
