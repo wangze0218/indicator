@@ -1,5 +1,7 @@
 package indicator
 
+import "sync"
+
 type Macd struct {
 	short  *Ema
 	long   *Ema
@@ -7,6 +9,7 @@ type Macd struct {
 	diff   float64
 	dea    float64
 	macd   float64
+	m      sync.Mutex
 }
 
 func NewMacd(short, long, signal int32) *Macd {
@@ -14,6 +17,8 @@ func NewMacd(short, long, signal int32) *Macd {
 }
 
 func (this *Macd) Update(price float64) (float64, float64, float64) {
+	defer this.m.Unlock()
+	this.m.Lock()
 	s := this.short.Update(price)
 	l := this.long.Update(price)
 	this.diff = s - l

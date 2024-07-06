@@ -2,6 +2,7 @@ package indicator
 
 import (
 	"math"
+	"sync"
 )
 
 type CurrBoll struct {
@@ -12,6 +13,7 @@ type CurrBoll struct {
 	mid    float64
 	up     float64
 	low    float64
+	m      sync.Mutex
 }
 
 // NewCurrBoll 初始化 CurrBoll 结构体
@@ -25,6 +27,8 @@ func NewCurrBoll(n int, k float64) *CurrBoll {
 
 // AddPrice 添加一个新的价格数据点，并更新布林带
 func (b *CurrBoll) AddPrice(price float64) {
+	defer b.m.Unlock()
+	b.m.Lock()
 	if len(b.prices) >= b.n {
 		// 移除最早的价格并更新 smaSum
 		b.smaSum -= b.prices[0]
