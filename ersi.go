@@ -57,8 +57,8 @@ func (this *ERsi) GetERsi() float64 {
 func (this *ERsi) Clone() *ERsi {
 	return &ERsi{
 		period:      this.period,
-		gainsEma:    this.gainsEma,
-		lossesEma:   this.lossesEma,
+		gainsEma:    this.gainsEma.Clone(),
+		lossesEma:   this.lossesEma.Clone(),
 		currentERsi: this.currentERsi,
 		prevPrice:   this.prevPrice,
 		firstPrice:  this.firstPrice,

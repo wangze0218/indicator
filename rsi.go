@@ -49,3 +49,12 @@ func (this *Rsi) Update(price float64) float64 {
 	rsi := 100 - (100 / (1 + rs))
 	return rsi
 }
+
+func (this *Rsi) Clone() *Rsi {
+	return &Rsi{
+		period:    this.period,
+		gainSma:   this.gainSma.Clone(),
+		lossSma:   this.lossSma.Clone(),
+		prevPrice: this.prevPrice,
+	}
+}
