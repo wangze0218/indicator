@@ -8,8 +8,6 @@ import (
 // Rsi 表示相对强弱指数 (RSI)
 type Rsi struct {
 	period      int
-	gainSma     *Sma
-	lossSma     *Sma
 	m           sync.Mutex
 	currentRsi  float64
 	prices      []float64 // 存储价格数据
@@ -21,9 +19,7 @@ type Rsi struct {
 // NewRsi 创建一个新的 Rsi 实例
 func NewRsi(period int) *Rsi {
 	return &Rsi{
-		period:  period,
-		gainSma: NewSma(period),
-		lossSma: NewSma(period),
+		period: period,
 	}
 }
 
@@ -84,8 +80,6 @@ func (r *Rsi) GetCurrentRsi() float64 {
 func (r *Rsi) Clone() *Rsi {
 	return &Rsi{
 		period:      r.period,
-		gainSma:     r.gainSma.Clone(),
-		lossSma:     r.lossSma.Clone(),
 		currentRsi:  r.currentRsi,
 		prices:      append([]float64{}, r.prices...), // 复制切片内容，避免共享底层数组
 		avgGain:     r.avgGain,
