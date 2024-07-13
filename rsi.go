@@ -3,11 +3,12 @@ package indicator
 import "sync"
 
 type Rsi struct {
-	period    int
-	gainSma   *Sma
-	lossSma   *Sma
-	prevPrice float64
-	m         sync.Mutex
+	period     int
+	gainSma    *Sma
+	lossSma    *Sma
+	prevPrice  float64
+	m          sync.Mutex
+	currentRsi float64
 }
 
 func NewRsi(period int) *Rsi {
@@ -46,15 +47,20 @@ func (this *Rsi) Update(price float64) float64 {
 	}
 
 	rs := avgGain / avgLoss
-	rsi := 100 - (100 / (1 + rs))
-	return rsi
+	this.currentRsi = 100 - (100 / (1 + rs))
+	return this.currentRsi
 }
 
 func (this *Rsi) Clone() *Rsi {
 	return &Rsi{
-		period:    this.period,
-		gainSma:   this.gainSma.Clone(),
-		lossSma:   this.lossSma.Clone(),
-		prevPrice: this.prevPrice,
+		period:     this.period,
+		gainSma:    this.gainSma.Clone(),
+		lossSma:    this.lossSma.Clone(),
+		prevPrice:  this.prevPrice,
+		currentRsi: this.currentRsi,
 	}
+}
+
+func (this *Rsi) GetCurrentRsi() float64 {
+	return this.currentRsi
 }
