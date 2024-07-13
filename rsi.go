@@ -1,7 +1,6 @@
 package indicator
 
 import (
-	"math"
 	"sync"
 )
 
@@ -90,52 +89,6 @@ func (r *Rsi) Clone() *Rsi {
 		avgLoss:     r.avgLoss,
 		updateCount: r.updateCount,
 	}
-}
-
-// IdentifyBullishDivergence 识别牛市背离，并返回背离程度
-func (r *Rsi) IdentifyBullishDivergence(lookbackLeft int, rangeLower, rangeUpper float64) (bool, float64) {
-	if len(r.prices) < lookbackLeft+1 {
-		return false, 0
-	}
-
-	currentRsi := r.GetCurrentRsi()
-	previousRsi := r.GetRsiForIndex(len(r.prices) - 1 - lookbackLeft)
-
-	// 计算 RSI 差异的百分比
-	rsiChange := currentRsi - previousRsi
-	divergenceDegree := math.Abs(rsiChange / currentRsi * 100)
-
-	// 检查牛市背离条件
-	rsiHL := currentRsi > previousRsi && inRange(previousRsi, rangeLower, rangeUpper)
-	priceLL := r.prices[len(r.prices)-1] < r.prices[len(r.prices)-1-lookbackLeft]
-	if priceLL && rsiHL {
-		return true, divergenceDegree
-	}
-
-	return false, 0
-}
-
-// IdentifyBearishDivergence 识别熊市背离，并返回背离程度
-func (r *Rsi) IdentifyBearishDivergence(lookbackLeft int, rangeLower, rangeUpper float64) (bool, float64) {
-	if len(r.prices) < lookbackLeft+1 {
-		return false, 0
-	}
-
-	currentRsi := r.GetCurrentRsi()
-	previousRsi := r.GetRsiForIndex(len(r.prices) - 1 - lookbackLeft)
-
-	// 计算 RSI 差异的百分比
-	rsiChange := currentRsi - previousRsi
-	divergenceDegree := math.Abs(rsiChange / currentRsi * 100)
-
-	// 检查熊市背离条件
-	rsiLH := currentRsi < previousRsi && inRange(previousRsi, rangeLower, rangeUpper)
-	priceHH := r.prices[len(r.prices)-1] > r.prices[len(r.prices)-1-lookbackLeft]
-	if priceHH && rsiLH {
-		return true, divergenceDegree
-	}
-
-	return false, 0
 }
 
 // GetRsiForIndex 获取指定索引位置的 RSI 值
