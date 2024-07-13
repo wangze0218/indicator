@@ -5,17 +5,25 @@ import (
 	"sync"
 )
 
+// Rsi 表示相对强弱指数 (RSI)
 type Rsi struct {
-	period     int
-	m          sync.Mutex
-	currentRsi float64
-	prices     []float64 // 存储价格数据
+	period      int
+	gainSma     *Sma
+	lossSma     *Sma
+	m           sync.Mutex
+	currentRsi  float64
+	prices      []float64 // 存储价格数据
+	avgGain     float64   // 平均增益
+	avgLoss     float64   // 平均损失
+	updateCount int       // 更新计数
 }
 
 // NewRsi 创建一个新的 Rsi 实例
 func NewRsi(period int) *Rsi {
 	return &Rsi{
-		period: period,
+		period:  period,
+		gainSma: NewSma(period),
+		lossSma: NewSma(period),
 	}
 }
 
@@ -27,8 +35,8 @@ func (r *Rsi) Update(price float64) float64 {
 	// 添加价格到 prices 切片
 	r.prices = append(r.prices, price)
 
-	// 如果 prices 的长度大于 period，则删除最旧的价格
-	if len(r.prices) > r.period {
+	// 如果 prices 的长度大于两倍 period，则删除最旧的价格
+	if len(r.prices) > 2*r.period {
 		r.prices = r.prices[1:]
 	}
 
@@ -36,22 +44,32 @@ func (r *Rsi) Update(price float64) float64 {
 		return 0 // 如果只有一个价格数据，无法计算 RSI，返回默认值
 	}
 
-	var gainSum, lossSum float64
-	for i := 1; i < len(r.prices); i++ {
-		change := r.prices[i] - r.prices[i-1]
-		if change > 0 {
-			gainSum += change
-		}
-		lossSum += math.Abs(change)
+	change := price - r.prices[len(r.prices)-2]
+
+	var gain, loss float64
+	if change > 0 {
+		gain = change
+		loss = 0
+	} else {
+		gain = 0
+		loss = -change
 	}
 
-	avgGain := gainSum / float64(r.period)
-	avgLoss := lossSum / float64(r.period)
+	// 更新平均增益和平均损失
+	r.updateCount++
+	if r.updateCount <= r.period {
+		r.avgGain = (r.avgGain*float64(r.updateCount-1) + gain) / float64(r.updateCount)
+		r.avgLoss = (r.avgLoss*float64(r.updateCount-1) + loss) / float64(r.updateCount)
+	} else {
+		r.avgGain = (r.avgGain*float64(r.period-1) + gain) / float64(r.period)
+		r.avgLoss = (r.avgLoss*float64(r.period-1) + loss) / float64(r.period)
+	}
 
-	if avgLoss == 0 {
+	if r.avgLoss == 0 {
 		r.currentRsi = 100
 	} else {
-		r.currentRsi = 100 * (avgGain / avgLoss)
+		rs := r.avgGain / r.avgLoss
+		r.currentRsi = 100 - (100 / (1 + rs))
 	}
 
 	return r.currentRsi
@@ -65,9 +83,14 @@ func (r *Rsi) GetCurrentRsi() float64 {
 // Clone 返回当前 Rsi 的克隆实例
 func (r *Rsi) Clone() *Rsi {
 	return &Rsi{
-		period:     r.period,
-		currentRsi: r.currentRsi,
-		prices:     append([]float64{}, r.prices...), // 复制切片内容，避免共享底层数组
+		period:      r.period,
+		gainSma:     r.gainSma.Clone(),
+		lossSma:     r.lossSma.Clone(),
+		currentRsi:  r.currentRsi,
+		prices:      append([]float64{}, r.prices...), // 复制切片内容，避免共享底层数组
+		avgGain:     r.avgGain,
+		avgLoss:     r.avgLoss,
+		updateCount: r.updateCount,
 	}
 }
 
