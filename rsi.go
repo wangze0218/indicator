@@ -1,5 +1,3 @@
-// rsi.go
-
 package indicator
 
 import (
@@ -7,11 +5,8 @@ import (
 	"sync"
 )
 
-// Rsi 表示相对强弱指数 (RSI)
 type Rsi struct {
 	period     int
-	gainSma    *Sma
-	lossSma    *Sma
 	m          sync.Mutex
 	currentRsi float64
 	prices     []float64 // 存储价格数据
@@ -20,19 +15,7 @@ type Rsi struct {
 // NewRsi 创建一个新的 Rsi 实例
 func NewRsi(period int) *Rsi {
 	return &Rsi{
-		period:  period,
-		gainSma: NewSma(1500),
-		lossSma: NewSma(1500),
-	}
-}
-
-func (r *Rsi) setPrice(price float64) {
-	// 添加价格到 prices 切片
-	r.prices = append(r.prices, price)
-
-	// 如果 prices 的长度大于两倍 period，则删除最旧的价格
-	if len(r.prices) > 2*r.period {
-		r.prices = r.prices[1:]
+		period: period,
 	}
 }
 
@@ -40,30 +23,37 @@ func (r *Rsi) setPrice(price float64) {
 func (r *Rsi) Update(price float64) float64 {
 	defer r.m.Unlock()
 	r.m.Lock()
-	r.setPrice(price)
+
+	// 添加价格到 prices 切片
+	r.prices = append(r.prices, price)
+
+	// 如果 prices 的长度大于 period，则删除最旧的价格
+	if len(r.prices) > r.period {
+		r.prices = r.prices[1:]
+	}
+
 	if len(r.prices) < 2 {
 		return 0 // 如果只有一个价格数据，无法计算 RSI，返回默认值
 	}
-	change := price - r.prices[len(r.prices)-2]
 
-	var gain, loss float64
-	if change > 0 {
-		gain = change
-		loss = 0
-	} else {
-		gain = 0
-		loss = -change
+	var gainSum, lossSum float64
+	for i := 1; i < len(r.prices); i++ {
+		change := r.prices[i] - r.prices[i-1]
+		if change > 0 {
+			gainSum += change
+		}
+		lossSum += math.Abs(change)
 	}
 
-	avgGain := r.gainSma.Update(gain)
-	avgLoss := r.lossSma.Update(loss)
+	avgGain := gainSum / float64(r.period)
+	avgLoss := lossSum / float64(r.period)
 
 	if avgLoss == 0 {
-		return 100
+		r.currentRsi = 100
+	} else {
+		r.currentRsi = 100 * (avgGain / avgLoss)
 	}
 
-	rs := avgGain / avgLoss
-	r.currentRsi = 100 - (100 / (1 + rs))
 	return r.currentRsi
 }
 
@@ -76,8 +66,6 @@ func (r *Rsi) GetCurrentRsi() float64 {
 func (r *Rsi) Clone() *Rsi {
 	return &Rsi{
 		period:     r.period,
-		gainSma:    r.gainSma.Clone(),
-		lossSma:    r.lossSma.Clone(),
 		currentRsi: r.currentRsi,
 		prices:     append([]float64{}, r.prices...), // 复制切片内容，避免共享底层数组
 	}
