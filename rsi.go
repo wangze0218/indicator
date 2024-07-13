@@ -44,7 +44,7 @@ func (r *Rsi) Update(price float64) float64 {
 	if len(r.prices) < 2 {
 		return 0 // 如果只有一个价格数据，无法计算 RSI，返回默认值
 	}
-	change := price - r.prices[len(r.prices)-1]
+	change := price - r.prices[len(r.prices)-2]
 
 	var gain, loss float64
 	if change > 0 {
