@@ -35,6 +35,8 @@ func (r *Rsi) Update(price float64) float64 {
 	// 如果 prices 的长度大于两倍 period，则删除最旧的价格
 	if len(r.prices) > 2*r.period {
 		r.prices = r.prices[1:]
+	}
+	if len(r.rsis) > 3*r.period {
 		r.rsis = r.rsis[1:]
 	}
 
