@@ -21,16 +21,12 @@ type Rsi struct {
 func NewRsi(period int) *Rsi {
 	return &Rsi{
 		period:  period,
-		gainSma: NewSma(period),
-		lossSma: NewSma(period),
+		gainSma: NewSma(1500),
+		lossSma: NewSma(1500),
 	}
 }
 
-// Update 更新 RSI 并返回当前值
-func (r *Rsi) Update(price float64) float64 {
-	defer r.m.Unlock()
-	r.m.Lock()
-
+func (r *Rsi) setPrice(price float64) {
 	// 添加价格到 prices 切片
 	r.prices = append(r.prices, price)
 
@@ -38,12 +34,17 @@ func (r *Rsi) Update(price float64) float64 {
 	if len(r.prices) > 2*r.period {
 		r.prices = r.prices[1:]
 	}
+}
 
+// Update 更新 RSI 并返回当前值
+func (r *Rsi) Update(price float64) float64 {
+	defer r.m.Unlock()
+	r.m.Lock()
+	r.setPrice(price)
 	if len(r.prices) < 2 {
 		return 0 // 如果只有一个价格数据，无法计算 RSI，返回默认值
 	}
-
-	change := price - r.prices[len(r.prices)-2]
+	change := price - r.prices[len(r.prices)-1]
 
 	var gain, loss float64
 	if change > 0 {
