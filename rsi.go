@@ -11,6 +11,7 @@ type Rsi struct {
 	m           sync.Mutex
 	currentRsi  float64
 	prices      []float64 // 存储价格数据
+	rsis        []float64 // 存储rsi价格数据
 	avgGain     float64   // 平均增益
 	avgLoss     float64   // 平均损失
 	updateCount int       // 更新计数
@@ -34,6 +35,7 @@ func (r *Rsi) Update(price float64) float64 {
 	// 如果 prices 的长度大于两倍 period，则删除最旧的价格
 	if len(r.prices) > 2*r.period {
 		r.prices = r.prices[1:]
+		r.rsis = r.rsis[1:]
 	}
 
 	if len(r.prices) < 2 {
@@ -67,7 +69,7 @@ func (r *Rsi) Update(price float64) float64 {
 		rs := r.avgGain / r.avgLoss
 		r.currentRsi = 100 - (100 / (1 + rs))
 	}
-
+	r.rsis = append(r.rsis, r.currentRsi)
 	return r.currentRsi
 }
 
@@ -89,20 +91,20 @@ func (r *Rsi) Clone() *Rsi {
 }
 
 // IdentifyBullishDivergence 识别牛市背离，并返回背离程度
-func (r *Rsi) IdentifyBullishDivergence(lookbackLeft, lookbackRight, rangeLower, rangeUpper int) (bool, float64) {
-	if len(r.prices) < lookbackRight+1 {
+func (r *Rsi) IdentifyBullishDivergence(lookbackLeft int, rangeLower, rangeUpper float64) (bool, float64) {
+	if len(r.prices) < lookbackLeft+1 {
 		return false, 0
 	}
 
 	currentRsi := r.GetCurrentRsi()
-	previousRsi := r.GetRsiForIndex(len(r.prices) - 1 - lookbackRight)
+	previousRsi := r.GetRsiForIndex(len(r.prices) - 1 - lookbackLeft)
 
 	// 计算 RSI 差异的百分比
 	rsiChange := currentRsi - previousRsi
 	divergenceDegree := math.Abs(rsiChange / currentRsi * 100)
 
 	// 检查牛市背离条件
-	rsiHL := currentRsi > r.GetRsiForIndex(len(r.prices)-1-lookbackLeft) && inRange(r, len(r.prices)-1-lookbackLeft, rangeLower, rangeUpper)
+	rsiHL := currentRsi > previousRsi && inRange(previousRsi, rangeLower, rangeUpper)
 	priceLL := r.prices[len(r.prices)-1] < r.prices[len(r.prices)-1-lookbackLeft]
 	if priceLL && rsiHL {
 		return true, divergenceDegree
@@ -112,20 +114,20 @@ func (r *Rsi) IdentifyBullishDivergence(lookbackLeft, lookbackRight, rangeLower,
 }
 
 // IdentifyBearishDivergence 识别熊市背离，并返回背离程度
-func (r *Rsi) IdentifyBearishDivergence(lookbackLeft, lookbackRight, rangeLower, rangeUpper int) (bool, float64) {
-	if len(r.prices) < lookbackRight+1 {
+func (r *Rsi) IdentifyBearishDivergence(lookbackLeft int, rangeLower, rangeUpper float64) (bool, float64) {
+	if len(r.prices) < lookbackLeft+1 {
 		return false, 0
 	}
 
 	currentRsi := r.GetCurrentRsi()
-	previousRsi := r.GetRsiForIndex(len(r.prices) - 1 - lookbackRight)
+	previousRsi := r.GetRsiForIndex(len(r.prices) - 1 - lookbackLeft)
 
 	// 计算 RSI 差异的百分比
 	rsiChange := currentRsi - previousRsi
 	divergenceDegree := math.Abs(rsiChange / currentRsi * 100)
 
 	// 检查熊市背离条件
-	rsiLH := currentRsi < r.GetRsiForIndex(len(r.prices)-1-lookbackLeft) && inRange(r, len(r.prices)-1-lookbackLeft, rangeLower, rangeUpper)
+	rsiLH := currentRsi < previousRsi && inRange(previousRsi, rangeLower, rangeUpper)
 	priceHH := r.prices[len(r.prices)-1] > r.prices[len(r.prices)-1-lookbackLeft]
 	if priceHH && rsiLH {
 		return true, divergenceDegree
@@ -136,14 +138,13 @@ func (r *Rsi) IdentifyBearishDivergence(lookbackLeft, lookbackRight, rangeLower,
 
 // GetRsiForIndex 获取指定索引位置的 RSI 值
 func (r *Rsi) GetRsiForIndex(index int) float64 {
-	if index < 0 || index >= len(r.prices) {
+	if index < 0 || index >= len(r.rsis) {
 		return 0.0 // 或者返回一个合适的默认值
 	}
-	return r.prices[index]
+	return r.rsis[index]
 }
 
 // inRange 检查当前 RSI 是否在指定范围内
-func inRange(r *Rsi, index, lower, upper int) bool {
-	rsi := r.GetRsiForIndex(index)
-	return rsi >= float64(lower) && rsi <= float64(upper)
+func inRange(previousRsi float64, lower, upper float64) bool {
+	return previousRsi >= float64(lower) && previousRsi <= float64(upper)
 }
