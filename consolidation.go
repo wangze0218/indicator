@@ -19,12 +19,11 @@ func (this *Consolidation) Update(bHPrice, bLPrice, mPrice float64) bool {
 	this.upper.Update(bHPrice)
 	this.marking.Update(mPrice)
 	this.lower.Update(bLPrice)
-
-	return this.GetThrough()
+	return true
 }
 
-func (this *Consolidation) GetThrough() bool {
-	if this.marking.GetPrice() < this.upper.GetPrice() && this.marking.GetPrice() > this.lower.GetPrice() {
+func (this *Consolidation) GetThrough(point float64) bool {
+	if this.marking.GetPrice() < this.upper.GetPrice()+point && this.marking.GetPrice() > this.lower.GetPrice()-point {
 		return true
 	}
 	return false
