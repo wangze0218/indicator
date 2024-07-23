@@ -2,6 +2,7 @@ package indicator
 
 import (
 	"container/list"
+	"fmt"
 	"sync"
 )
 
@@ -32,20 +33,24 @@ func NewKdj(n1 int, n2 int, n3 int) *Kdj {
 	}
 }
 
-// maxHigh 计算最近 n1 个 Kline 的最高值
 func (k *Kdj) maxHigh() float64 {
-	for k.dequeH.Len() > 1 && k.dequeH.Front().Value.(float64) < k.dequeH.Back().Value.(float64) {
-		k.dequeH.Remove(k.dequeH.Front())
+	max_ := k.dequeH.Front().Value.(float64)
+	for e := k.dequeH.Front(); e != nil; e = e.Next() {
+		if e.Value.(float64) > max_ {
+			max_ = e.Value.(float64)
+		}
 	}
-	return k.dequeH.Front().Value.(float64)
+	return max_
 }
 
-// minLow 计算最近 n1 个 Kline 的最低值
 func (k *Kdj) minLow() float64 {
-	for k.dequeL.Len() > 1 && k.dequeL.Front().Value.(float64) > k.dequeL.Back().Value.(float64) {
-		k.dequeL.Remove(k.dequeL.Front())
+	min_ := k.dequeL.Front().Value.(float64)
+	for e := k.dequeL.Front(); e != nil; e = e.Next() {
+		if e.Value.(float64) < min_ {
+			min_ = e.Value.(float64)
+		}
 	}
-	return k.dequeL.Front().Value.(float64)
+	return min_
 }
 
 func (k *Kdj) Update(bid Kline) (float64, float64, float64) {
@@ -74,7 +79,8 @@ func (k *Kdj) Update(bid Kline) (float64, float64, float64) {
 	} else {
 		rsv = 50.0 // 如果高低相等，RSV 为 50
 	}
-
+	fmt.Println(bid.Close, h, l)
+	fmt.Println(rsv, bid.Close-l, h-l)
 	// 更新 K 和 D
 	k.K = k.kSma.Update(rsv)
 	k.D = k.dSma.Update(k.K)
