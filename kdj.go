@@ -1,6 +1,9 @@
 package indicator
 
-import "container/list"
+import (
+	"container/list"
+	"sync"
+)
 
 type Kdj struct {
 	n1     int
@@ -13,6 +16,7 @@ type Kdj struct {
 	K      float64
 	D      float64
 	J      float64
+	m      sync.Mutex
 }
 
 // NewKdj 创建一个新的 Kdj 对象
@@ -45,11 +49,13 @@ func (k *Kdj) minLow() float64 {
 }
 
 func (k *Kdj) Update(bid Kline) (float64, float64, float64) {
+	defer k.m.Unlock()
+	k.m.Lock()
 	// 更新 dequeH 和 dequeL
-	if k.dequeH.Len() >= k.n1 {
+	if k.dequeH.Len() > k.n1 {
 		k.dequeH.Remove(k.dequeH.Front())
 	}
-	if k.dequeL.Len() >= k.n1 {
+	if k.dequeL.Len() > k.n1 {
 		k.dequeL.Remove(k.dequeL.Front())
 	}
 	k.dequeH.PushBack(bid.High)
