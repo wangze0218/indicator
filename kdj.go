@@ -2,12 +2,6 @@ package indicator
 
 import "container/list"
 
-type Kline struct {
-	High  float64
-	Low   float64
-	Close float64
-}
-
 type Kdj struct {
 	n1     int
 	n2     int
