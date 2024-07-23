@@ -25,7 +25,7 @@ func NewSma(period int) *Sma {
 func (s *Sma) Update(price float64) float64 {
 	defer s.m.Unlock()
 	s.m.Lock()
-	if s.queue.Len() > s.period {
+	if s.queue.Len() >= s.period {
 		s.sum -= s.queue.Remove(s.queue.Front()).(float64)
 	}
 	s.queue.PushBack(price)

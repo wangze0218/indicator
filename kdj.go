@@ -52,10 +52,10 @@ func (k *Kdj) Update(bid Kline) (float64, float64, float64) {
 	defer k.m.Unlock()
 	k.m.Lock()
 	// 更新 dequeH 和 dequeL
-	if k.dequeH.Len() > k.n1 {
+	if k.dequeH.Len() >= k.n1 {
 		k.dequeH.Remove(k.dequeH.Front())
 	}
-	if k.dequeL.Len() > k.n1 {
+	if k.dequeL.Len() >= k.n1 {
 		k.dequeL.Remove(k.dequeL.Front())
 	}
 	k.dequeH.PushBack(bid.High)
