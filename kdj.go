@@ -2,6 +2,12 @@ package indicator
 
 import "container/list"
 
+type Kline struct {
+	High  float64
+	Low   float64
+	Close float64
+}
+
 type Kdj struct {
 	n1     int
 	n2     int
@@ -10,6 +16,9 @@ type Kdj struct {
 	dSma   *Sma       // 用于计算 D 值的 SMA
 	dequeH *list.List // 用于存储最近 n1 个 Kline 的 High 值
 	dequeL *list.List // 用于存储最近 n1 个 Kline 的 Low 值
+	K      float64
+	D      float64
+	J      float64
 }
 
 // NewKdj 创建一个新的 Kdj 对象
@@ -67,9 +76,38 @@ func (k *Kdj) Update(bid Kline) (float64, float64, float64) {
 	}
 
 	// 更新 K 和 D
-	K := k.kSma.Update(rsv)
-	D := k.dSma.Update(K)
-	J := 3.0*K - 2.0*D
+	k.K = k.kSma.Update(rsv)
+	k.D = k.dSma.Update(k.K)
+	k.J = 3.0*k.K - 2.0*k.D
 
-	return K, D, J
+	return k.K, k.D, k.J
+}
+
+// Get 获取当前的 K、D、J 值
+func (k *Kdj) Get() (float64, float64, float64) {
+	return k.K, k.D, k.J
+}
+
+// Clone 创建并返回当前 Kdj 对象的克隆副本
+func (k *Kdj) Clone() *Kdj {
+	clone := &Kdj{
+		n1:     k.n1,
+		n2:     k.n2,
+		n3:     k.n3,
+		kSma:   k.kSma.Clone(),
+		dSma:   k.dSma.Clone(),
+		dequeH: list.New(),
+		dequeL: list.New(),
+		K:      k.K,
+		D:      k.D,
+		J:      k.J,
+	}
+	// 复制 dequeH 和 dequeL
+	for e := k.dequeH.Front(); e != nil; e = e.Next() {
+		clone.dequeH.PushBack(e.Value)
+	}
+	for e := k.dequeL.Front(); e != nil; e = e.Next() {
+		clone.dequeL.PushBack(e.Value)
+	}
+	return clone
 }
