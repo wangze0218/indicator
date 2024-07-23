@@ -21,8 +21,8 @@ func NewKdj(n1 int, n2 int, n3 int) *Kdj {
 		n1:     n1,
 		n2:     n2,
 		n3:     n3,
-		kSma:   NewSma(),
-		dSma:   NewSma(),
+		kSma:   NewSma(n2),
+		dSma:   NewSma(n3),
 		dequeH: list.New(),
 		dequeL: list.New(),
 	}

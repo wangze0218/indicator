@@ -1,39 +1,36 @@
 package indicator
 
+// Sma 结构体定义
 type Sma struct {
-	sum   float64 // 用于累加计算移动平均值的总和
-	count int     // 当前数据点的数量
+	period int
+	count  int
+	sum    float64
 }
 
 // NewSma 创建一个新的 Sma 对象
-func NewSma() *Sma {
-	return &Sma{}
-}
-
-// Update 更新 SMA 对象的价格数据并返回当前的移动平均值
-func (s *Sma) Update(price float64) float64 {
-	// 添加新数据并更新总和
-	s.sum += price
-	s.count++
-
-	// 返回移动平均值
-	return s.sum / float64(s.count)
-}
-
-// GetAverage 返回当前的移动平均值
-func (s *Sma) GetAverage() float64 {
-	// 计算并返回移动平均值
-	if s.count == 0 {
-		return 0
-	}
-	return s.sum / float64(s.count)
-}
-
-// Clone 创建并返回当前 SMA 对象的克隆副本
-func (s *Sma) Clone() *Sma {
-	// 创建并返回当前 SMA 对象的克隆副本
+func NewSma(period int) *Sma {
 	return &Sma{
-		sum:   s.sum,
-		count: s.count,
+		period: period,
+	}
+}
+
+// Update 更新 Sma 值
+func (s *Sma) Update(price float64) float64 {
+	if s.count >= s.period {
+		// 先减去最早的值
+		s.sum -= s.sum / float64(s.count)
+	} else {
+		s.count++
+	}
+	s.sum += price
+	return s.sum / float64(s.count)
+}
+
+// Clone 创建并返回当前 Sma 对象的克隆副本
+func (s *Sma) Clone() *Sma {
+	return &Sma{
+		period: s.period,
+		count:  s.count,
+		sum:    s.sum,
 	}
 }
