@@ -10,7 +10,7 @@ type Sma struct {
 	period int
 	queue  *list.List
 	sum    float64
-	m      sync.Mutex
+	m      sync.RWMutex
 }
 
 // NewSma 创建一个新的 Sma 对象

@@ -7,7 +7,7 @@ import (
 // Rsi 表示相对强弱指数 (RSI)
 type Rsi struct {
 	period      int
-	m           sync.Mutex
+	m           sync.RWMutex
 	currentRsi  float64
 	prices      []float64 // 存储价格数据
 	rsis        []float64 // 存储rsi价格数据

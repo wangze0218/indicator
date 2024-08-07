@@ -13,7 +13,7 @@ type Boll struct {
 	mid    float64
 	up     float64
 	low    float64
-	m      sync.Mutex
+	m      sync.RWMutex
 }
 
 // NewBoll 初始化 Boll 结构体

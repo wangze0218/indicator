@@ -9,7 +9,7 @@ type Macd struct {
 	diff   float64
 	dea    float64
 	macd   float64
-	m      sync.Mutex
+	m      sync.RWMutex
 }
 
 func NewMacd(short, long, signal int32) *Macd {

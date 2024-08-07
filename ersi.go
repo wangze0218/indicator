@@ -9,7 +9,7 @@ type ERsi struct {
 	currentERsi float64
 	prevPrice   float64
 	firstPrice  bool
-	m           sync.Mutex
+	m           sync.RWMutex
 }
 
 func NewERsi(weight int32) *ERsi {
